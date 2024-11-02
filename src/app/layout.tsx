@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Ubuntu_Condensed } from "next/font/google";
 import "./globals.css";
+import MiniDrawer from "@/layouts/drawer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -11,6 +13,12 @@ const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+});
+// Font Ubuntu Condensed dari Google Fonts
+const ubuntuCondensed = Ubuntu_Condensed({
+  weight: "400", // Pilih bobot sesuai kebutuhan
+  subsets: ["latin"],
+  variable: "--font-ubuntu-condensed",
 });
 
 export const metadata: Metadata = {
@@ -25,8 +33,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} ${ubuntuCondensed.variable}`}>
+        <MiniDrawer>
+          {children}
+        </MiniDrawer>
       </body>
     </html>
   );

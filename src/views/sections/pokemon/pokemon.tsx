@@ -1,91 +1,56 @@
 "use client";
 
-import * as React from 'react';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
+import * as React from "react";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPokemon } from "@/models/reducers/pokemon/action";
+import { RootState, AppDispatch } from "@/models/store";
+import { useRouter } from "next/navigation";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { Button, CircularProgress, Typography } from "@mui/material";
 
 interface Column {
-  id: 'name' | 'code' | 'population' | 'size' | 'density';
+  id: "name" | "image" | "types" | "action";
   label: string;
   minWidth?: number;
-  align?: 'right';
-  format?: (value: number) => string;
+  align?: "center";
 }
 
 const columns: readonly Column[] = [
-  { id: 'name', label: 'Name', minWidth: 170 },
-  { id: 'code', label: 'ISO\u00a0Code', minWidth: 100 },
-  {
-    id: 'population',
-    label: 'Population',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toLocaleString('en-US'),
-  },
-  {
-    id: 'size',
-    label: 'Size\u00a0(km\u00b2)',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toLocaleString('en-US'),
-  },
-  {
-    id: 'density',
-    label: 'Density',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toFixed(2),
-  },
-];
-
-interface Data {
-  name: string;
-  code: string;
-  population: number;
-  size: number;
-  density: number;
-}
-
-function createData(
-  name: string,
-  code: string,
-  population: number,
-  size: number,
-): Data {
-  const density = population / size;
-  return { name, code, population, size, density };
-}
-
-const rows = [
-  createData('India', 'IN', 1324171354, 3287263),
-  createData('China', 'CN', 1403500365, 9596961),
-  createData('Italy', 'IT', 60483973, 301340),
-  createData('United States', 'US', 327167434, 9833520),
-  createData('Canada', 'CA', 37602103, 9984670),
-  createData('Australia', 'AU', 25475400, 7692024),
-  createData('Germany', 'DE', 83019200, 357578),
-  createData('Ireland', 'IE', 4857000, 70273),
-  createData('Mexico', 'MX', 126577691, 1972550),
-  createData('Japan', 'JP', 126317000, 377973),
-  createData('France', 'FR', 67022000, 640679),
-  createData('United Kingdom', 'GB', 67545757, 242495),
-  createData('Russia', 'RU', 146793744, 17098246),
-  createData('Nigeria', 'NG', 200962417, 923768),
-  createData('Brazil', 'BR', 210147125, 8515767),
+  { id: "name", label: "Name", minWidth: 170 },
+  { id: "image", label: "Image", minWidth: 100, align: "center" },
+  { id: "types", label: "Types", minWidth: 100, align: "center" },
+  { id: "action", label: "Action", minWidth: 100, align: "center" },
 ];
 
 export default function Pokemon() {
+  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const { data, loading, error } = useSelector((state: RootState) => state);
+
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [isClient, setIsClient] = React.useState(false); // Track client-side rendering
+
+  React.useEffect(() => {
+    setIsClient(true); // Set to true after component mounts on client
+    dispatch(fetchPokemon());
+  }, [dispatch]);
+
+  const handleViewDetails = (pokemonName: string) => {
+    router.push(`/pokemon/${pokemonName}`);
+  };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
+    console.log(newPage, event);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,8 +58,12 @@ export default function Pokemon() {
     setPage(0);
   };
 
+  if (!isClient) return null; // Avoid rendering until on the client
+  // Menangani loading dan error
+  if (loading) return <CircularProgress />;
+  if (error) return <Typography color="error">{error}</Typography>;
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+    <Paper sx={{ width: "100%", overflow: "hidden" }}>
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
@@ -111,31 +80,40 @@ export default function Pokemon() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows
+            {data
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
-                return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number'
-                            ? column.format(value)
-                            : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
+              .map((pokemon, index) => (
+                <TableRow hover role="checkbox" tabIndex={-1} key={index}>
+                  {columns.map((column) => {
+                    const value = pokemon[column.id];
+                    return (
+                      <TableCell key={column.id} align={column.align}>
+                        {column.id === "image" ? (
+                          <img
+                            src={pokemon.image}
+                            alt={pokemon.name}
+                            width={50}
+                            height={50}
+                          />
+                        ) : column.id === "action" ? (
+                          <Button onClick={() => handleViewDetails(pokemon.name)}>
+                            <VisibilityIcon />
+                          </Button>
+                        ) : (
+                          value
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
+        rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={rows.length}
+        count={data.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

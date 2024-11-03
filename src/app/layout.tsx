@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Ubuntu_Condensed } from "next/font/google";
 import "./globals.css";
 import MiniDrawer from "@/layouts/drawer";
+import ReduxProvider from '@/app/redux-provider';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,12 +33,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${ubuntuCondensed.variable}`}>
-        <MiniDrawer>
-          {children}
-        </MiniDrawer>
-      </body>
-    </html>
+    <ReduxProvider>
+      <html lang="en">
+        <body className={`${geistSans.variable} ${geistMono.variable} ${ubuntuCondensed.variable}`}>
+          <MiniDrawer>
+            {children}
+          </MiniDrawer>
+        </body>
+      </html>
+    </ReduxProvider>
   );
 }

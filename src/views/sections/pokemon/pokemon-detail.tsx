@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Card, CardActionArea, CardContent, CardMedia, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, CardContent, CardMedia, FormControl, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
 import { useParams } from 'next/navigation'; // Correct import for App Router
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,11 @@ import { RootState } from '@/models/store';
 const PokemonDetail = () => {
     const params = useParams();
     const { name } = params; // Access the dynamic route parameter
+    const [pokemonTypes, setPokemonTypes] = useState('');
+
+    const handleChangePokemon = (event: any) => { 
+        setPokemonTypes(event.target.value as string);
+    };
 
     // Use state to handle the loading state
     const [loading, setLoading] = useState(true);
@@ -27,7 +32,7 @@ const PokemonDetail = () => {
 
     if (loading) return <Typography>Loading...</Typography>; // Show loading state while fetching details
     if (!pokemon) return <Typography>No data found for {name}</Typography>; // Show error message if no data is found
-    
+
     return (
         <Box>
             {/* You can add more details here */}
@@ -49,6 +54,32 @@ const PokemonDetail = () => {
                         </Typography>
                     </CardContent>
                 </CardActionArea>
+            </Card>
+            <Card sx={{ mt: 2 }}>
+                <CardContent>
+                    <TextField id="outlined-basic" label="Outlined" variant="outlined" value={pokemon.name} disabled />
+                </CardContent>
+            </Card>
+            <Card sx={{ mt: 2 }}>
+                <CardContent>
+                    <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">Pokemon Types</InputLabel>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={pokemonTypes}
+                            label="Pokemon Types"
+                            onChange={handleChangePokemon}
+                        >
+                            {
+                                pokemon.types.map((type: string) => (
+                                    <MenuItem key={type} value={type}>{type}</MenuItem>
+                                ))
+                            }
+                            {/* <MenuItem value={10}>{pokemon.name}</MenuItem> */}
+                        </Select>
+                    </FormControl>
+                </CardContent>
             </Card>
         </Box>
     );
